@@ -31,6 +31,7 @@ def findbestguess(possanswers):
         numanswers=len(possanswers[i])
         if len(possanswers[i])==1:
             listofentropys[0][possanswers[i][0]]=1000
+            print(possanswers[i][0], "inf")
         else:
             for guess in possanswers[i]:
                 entropy=0
@@ -47,6 +48,7 @@ def findbestguess(possanswers):
                     if p!=0:
                         entropy+=p*(-math.log2(p))
                 listofentropys[i][guess]=entropy
+                print(guess, entropy)
     retdict={}
     for i in range(wordletype):
         for key in listofentropys[i]:
@@ -110,8 +112,7 @@ def ismatch(guess, answer, pattern):
     return fits
 
 def compilelist(guess, colors, posswords):
-    print(posswords)
-    print(len(posswords))
+
     colorsint=()
     for i in range(len(colors)):
         if colors[i]=="g":
@@ -134,22 +135,29 @@ def calculateword():
     
     global wordletype
     global first
-    possanswerslist
+    global possanswerslist
+    
     wordguess=entryword.get()
     entrycolors=[entrycolor1.get(),entrycolor2.get(),entrycolor3.get(),entrycolor4.get()]
+    entrycolors=entrycolors[:wordletype]
+    valid= (len(entryword.get())==5)
+    for i in range(wordletype):
+        valid=valid and (len(entrycolors[i])==5)
+    if not valid:
+        root.mainloop()
     if first:
         
         
         file=open("allWordsEnglishFew.txt", "r")
-        wordlist=ast.literal_eval(file.readlines()[5])
+        wordlist=ast.literal_eval(file.readlines()[0])
         file.close()
         for i in range(wordletype):
             possanswerslist[i]=wordlist
         first=False
     for i in range(wordletype):
         possanswerslist[i]=compilelist(wordguess, entrycolors[i], possanswerslist[i])
+    print(possanswerslist)
     bestguesses=findbestguess(possanswerslist)
-    print(bestguesses)
     nextstr="Next guess(es): "
     if len(bestguesses)==1:
         nextstr+=bestguesses[0]
@@ -162,24 +170,39 @@ def calculateword():
     
     labelnext=Label(root, text=nextstr, bg='orange')    
     canvas1.create_window(5*boxsize, 6*boxsize, width=11*boxsize, height=.5*boxsize, window=labelnext)   
+
 def reset():
     global first
+    global wordletype
+    global possanswerslist
     first=True
+    gametypeentry=str.lower(entrytype.get())
+    if gametypeentry=="w":
+        wordletype=1
+    elif gametypeentry=="d":
+        wordletype=2
+    elif gametypeentry=="q":
+        wordletype=4
+    else:
+        root.mainloop()
+    possanswerslist=[[]for i in range(wordletype)]
+    
 
-wordletype=4    
+wordletype=0    
 first=True
-possanswerslist=[[] for i in range(wordletype)]
+possanswerslist=[]
 root=Tk()
-boxsize=75
+boxsize=90
 canvas1=Canvas(root, width = 9*boxsize, height=7*boxsize, bg='blue')
 canvas1.pack()
 labelword=Label(root, text="Your guess:")
 labelreset=Label(root, text="Reset")
 labelenter=Label(root, text="Enter")
 labelcolors=Label(root, text="Order of colors:")
-labeltype=Label(root, text="Duordle or Quordle?")
-entryword=Entry(root)
+labeltype=Label(root, text="Wordle, Duordle, or Quordle?")
 entrytype=Entry(root)
+entryword=Entry(root)
+
 
 entrycolor1=Entry(root)
 entrycolor2=Entry(root)
