@@ -20,35 +20,62 @@ def createpattern(values,length):
         for pattern in subpattern:
             retlist.append((val,)+pattern)
     return retlist
+    
+def validpat(guess, pattern):
+    valid=True
+    for i in range(len(pattern)):
+        tempguess=guess
+        temppattern=pattern
+        let=tempguess[i]
+        if let in tempguess[i+1:] and temppattern[i]==0:
+            tempguess=tempguess[i+1:]
+            temppattern=temppattern[i+1:]
+            numtimes=tempguess.count(let)
+
+            for j in range(numtimes):
+
+                letpos=tempguess.index(let)
+                if temppattern[letpos]==1:
+                    valid=False
+                tempguess=tempguess[letpos+1:]
+                temppattern=temppattern[letpos+1:]
+    return valid
 
 def findbestguess(possanswers):
     global wordletype
-
+    global attemptnum
     patterns=createpattern((0,1,2), 5)   #hardcoded to be 5 letters
     bestguesses=[(-1,None),(-1,None),(-1,None),(-1,None),(-1,None)]
     listofentropys=[{} for i in range(wordletype)]
+
     for i in range(wordletype):
         numanswers=len(possanswers[i])
-        if len(possanswers[i])==1:
+        if numanswers==1:
             listofentropys[0][possanswers[i][0]]=1000
             print(possanswers[i][0], "inf")
-        else:
-            for guess in possanswers[i]:
+        elif numanswers!=0:
+            if attemptnum<=wordletype:
+                guesslist=possanswers[i]
+            else:
+                guesslist=allwords
+            for guess in guesslist:
                 entropy=0
                 for pattern in patterns:
-                    
-                    matches=0
-                    
-                    for answer in possanswers[i]:
-                    
-                        if ismatch(guess, answer, pattern):
-                            matches+=1
+                    if validpat(guess, pattern):
+                        matches=0
+                        
+                        for answer in possanswers[i]:
+                        
+                            if ismatch(guess, answer, pattern):
+                                matches+=1
+                        
+                        if matches!=0:
+                            p=matches/numanswers
 
-                    p=matches/numanswers
-                    if p!=0:
-                        entropy+=p*(-math.log2(p))
+                            entropy+=p*(-math.log2(p))
                 listofentropys[i][guess]=entropy
-                print(guess, entropy)
+                if entropy!=0:
+                    print(guess, entropy)
     retdict={}
     for i in range(wordletype):
         for key in listofentropys[i]:
@@ -56,8 +83,8 @@ def findbestguess(possanswers):
             if key not in retdict:                
                 for i in range(wordletype):
                     if key in listofentropys[i]:
-                        averageentropy+=listofentropys[i].get(key)/4
-            retdict[key]=averageentropy
+                        averageentropy+=listofentropys[i].get(key)
+                retdict[key]=averageentropy/4
     for key in retdict:
         bestguesses=resortfive(bestguesses, (retdict.get(key),key))
     ret=[]
@@ -75,6 +102,8 @@ def resortfive(current, check):
     return current
 
 def ismatch(guess, answer, pattern):
+    
+
     fits=True
     numgreens=pattern.count(2)
 
@@ -134,8 +163,9 @@ def compilelist(guess, colors, posswords):
 def calculateword():
     
     global wordletype
-    global first
     global possanswerslist
+    global allwords
+    global attemptnum
     
     wordguess=entryword.get()
     entrycolors=[entrycolor1.get(),entrycolor2.get(),entrycolor3.get(),entrycolor4.get()]
@@ -145,19 +175,20 @@ def calculateword():
         valid=valid and (len(entrycolors[i])==5)
     if not valid:
         root.mainloop()
-    if first:
+    if attemptnum==0:
         
         
-        file=open("allWordsEnglishFew.txt", "r")
-        wordlist=ast.literal_eval(file.readlines()[0])
+        file=open("testtext.txt", "r")
+        allwords=ast.literal_eval(file.readlines()[0])
         file.close()
         for i in range(wordletype):
-            possanswerslist[i]=wordlist
-        first=False
+            possanswerslist[i]=allwords
+    attemptnum+=1
     for i in range(wordletype):
         possanswerslist[i]=compilelist(wordguess, entrycolors[i], possanswerslist[i])
-    print(possanswerslist)
+    
     bestguesses=findbestguess(possanswerslist)
+    print(possanswerslist)
     nextstr="Next guess(es): "
     if len(bestguesses)==1:
         nextstr+=bestguesses[0]
@@ -172,10 +203,10 @@ def calculateword():
     canvas1.create_window(5*boxsize, 6*boxsize, width=11*boxsize, height=.5*boxsize, window=labelnext)   
 
 def reset():
-    global first
     global wordletype
     global possanswerslist
-    first=True
+    global attemptnum
+    attemptnum=0
     gametypeentry=str.lower(entrytype.get())
     if gametypeentry=="w":
         wordletype=1
@@ -187,9 +218,9 @@ def reset():
         root.mainloop()
     possanswerslist=[[]for i in range(wordletype)]
     
-
+attemptnum=0
 wordletype=0    
-first=True
+allwords=[]
 possanswerslist=[]
 root=Tk()
 boxsize=90
