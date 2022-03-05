@@ -20,7 +20,7 @@ def createpattern(values,length):
         for pattern in subpattern:
             retlist.append((val,)+pattern)
     return retlist
-    
+
 def validpat(guess, pattern):
     valid=True
     for i in range(len(pattern)):
@@ -54,7 +54,7 @@ def findbestguess(possanswers):
             listofentropys[0][possanswers[i][0]]=1000
             print(possanswers[i][0], "inf")
         elif numanswers!=0:
-            if attemptnum<=wordletype:
+            if attemptnum<=wordletype/2:
                 guesslist=possanswers[i]
             else:
                 guesslist=allwords
@@ -178,7 +178,7 @@ def calculateword():
     if attemptnum==0:
         
         
-        file=open("testtext.txt", "r")
+        file=open("allWordsEnglishFew.txt", "r")
         allwords=ast.literal_eval(file.readlines()[0])
         file.close()
         for i in range(wordletype):
