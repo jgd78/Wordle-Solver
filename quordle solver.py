@@ -227,10 +227,7 @@ entry_type=Entry(root)
 entry_word=Entry(root)
 
 
-entry_color1=Entry(root)
-entry_color2=Entry(root)
-entry_color3=Entry(root)
-entry_color4=Entry(root)
+entry_colors=Entry(root)
 
 canvas1.create_window(2*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_word)
 canvas1.create_window(2*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_word)
@@ -239,10 +236,8 @@ canvas1.create_window(2*box_size, 2*box_size, width=2*box_size, height=.5*box_si
 
 
 canvas1.create_window(4.5*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_colors)
-canvas1.create_window(4.5*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_color1)
-canvas1.create_window(4.5*box_size, 3*box_size, width=2*box_size, height=.5*box_size, window=entry_color2)
-canvas1.create_window(4.5*box_size, 4*box_size, width=2*box_size, height=.5*box_size, window=entry_color3)
-canvas1.create_window(4.5*box_size, 5*box_size, width=2*box_size, height=.5*box_size, window=entry_color4)
+canvas1.create_window(4.5*box_size, 2*box_size, width=2*box_size, height=3*box_size, window=entry_colors)
+
 
 canvas1.create_window(7*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_type)
 canvas1.create_window(7*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_type)
