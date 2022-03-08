@@ -3,97 +3,89 @@ import math
 import ast
 from tkinter import *
 
-
-
-
-
-
-
-
-
-def createpattern(values,length):
+def create_pattern(values,length):
     if length==0:
         return [()]
-    retlist=[]
+    ret_list=[]
     for val in values:
-        subpattern=createpattern(values,length-1)
+        subpattern=create_pattern(values,length-1)
         for pattern in subpattern:
-            retlist.append((val,)+pattern)
-    return retlist
+            ret_list.append((val,)+pattern)
+    return ret_list
 
-def validpat(guess, pattern):
+def valid_pat(guess, pattern):
     valid=True
     for i in range(len(pattern)):
-        tempguess=guess
-        temppattern=pattern
-        let=tempguess[i]
-        if let in tempguess[i+1:] and temppattern[i]==0:
-            tempguess=tempguess[i+1:]
-            temppattern=temppattern[i+1:]
-            numtimes=tempguess.count(let)
+        temp_guess=guess
+        temp_pattern=pattern
+        let=temp_guess[i]
+        if let in temp_guess[i+1:] and temp_pattern[i]==0:
+            temp_guess=temp_guess[i+1:]
+            temp_pattern=temp_pattern[i+1:]
+            num_times=temp_guess.count(let)
 
-            for j in range(numtimes):
+            for j in range(num_times):
 
-                letpos=tempguess.index(let)
-                if temppattern[letpos]==1:
+                let_pos=temp_guess.index(let)
+                if temp_pattern[let_pos]==1:
                     valid=False
-                tempguess=tempguess[letpos+1:]
-                temppattern=temppattern[letpos+1:]
+                temp_guess=temp_guess[let_pos+1:]
+                temp_pattern=temp_pattern[let_pos+1:]
     return valid
 
-def findbestguess(possanswers):
-    global wordletype
-    global attemptnum
-    patterns=createpattern((0,1,2), 5)   #hardcoded to be 5 letters
-    bestguesses=[(-1,None),(-1,None),(-1,None),(-1,None),(-1,None)]
-    listofentropys=[{} for i in range(wordletype)]
+def find_best_guess(poss_answers):
+    global wordle_type
+    global attempt_num
+    patterns=create_pattern((0,1,2), 5)   #hardcoded to be 5 letters
+    best_guesses=[(-1,None),(-1,None),(-1,None),(-1,None),(-1,None)]
+    list_of_entropys=[{} for i in range(wordle_type)]
 
-    for i in range(wordletype):
-        numanswers=len(possanswers[i])
-        if numanswers==1:
-            listofentropys[0][possanswers[i][0]]=1000
-            print(possanswers[i][0], "inf")
-        elif numanswers!=0:
-            if attemptnum<=wordletype/2:
-                guesslist=possanswers[i]
+    for i in range(wordle_type):
+        num_answers=len(poss_answers[i])
+        if num_answers==1:
+            list_of_entropys[0][poss_answers[i][0]]=1000
+            print(poss_answers[i][0], "inf")
+        elif num_answers!=0:
+            if attempt_num<=wordle_type/2:
+                guess_list=poss_answers[i]
             else:
-                guesslist=allwords
-            for guess in guesslist:
+                guess_list=all_words
+            for guess in guess_list:
                 entropy=0
                 for pattern in patterns:
-                    if validpat(guess, pattern):
+                    if valid_pat(guess, pattern):
                         matches=0
                         
-                        for answer in possanswers[i]:
+                        for answer in poss_answers[i]:
                         
-                            if ismatch(guess, answer, pattern):
+                            if is_match(guess, answer, pattern):
                                 matches+=1
                         
                         if matches!=0:
-                            p=matches/numanswers
+                            p=matches/num_answers
 
                             entropy+=p*(-math.log2(p))
-                listofentropys[i][guess]=entropy
+                list_of_entropys[i][guess]=entropy
                 if entropy!=0:
                     print(guess, entropy)
-    retdict={}
-    for i in range(wordletype):
-        for key in listofentropys[i]:
-            averageentropy=0
-            if key not in retdict:                
-                for i in range(wordletype):
-                    if key in listofentropys[i]:
-                        averageentropy+=listofentropys[i].get(key)
-                retdict[key]=averageentropy/4
-    for key in retdict:
-        bestguesses=resortfive(bestguesses, (retdict.get(key),key))
+    ret_dict={}
+    for i in range(wordle_type):
+        for key in list_of_entropys[i]:
+            average_entropy=0
+            if key not in ret_dict:                
+                for i in range(wordle_type):
+                    if key in list_of_entropys[i]:
+                        average_entropy+=list_of_entropys[i].get(key)
+                ret_dict[key]=average_entropy/4
+    for key in ret_dict:
+        best_guesses=resort_five(best_guesses, (ret_dict.get(key),key))
     ret=[]
-    for i in range(len(bestguesses)):
-        if bestguesses[i][0]!=-1:
-            ret.append(bestguesses[i][1])
+    for i in range(len(best_guesses)):
+        if best_guesses[i][0]!=-1:
+            ret.append(best_guesses[i][1])
     return ret
 
-def resortfive(current, check):
+def resort_five(current, check):
     if check[0]>current[-1][0]:
         for i in range(len(current)):
             if check[0]>current[i][0]:
@@ -101,17 +93,17 @@ def resortfive(current, check):
                 break
     return current
 
-def ismatch(guess, answer, pattern):
+def is_match(guess, answer, pattern):
     
 
     fits=True
-    numgreens=pattern.count(2)
+    num_greens=pattern.count(2)
 
     for i in range(len(pattern)):
         if guess[i]==answer[i] and pattern[i]!=2:
             fits=False
     if fits:
-        for i in range(numgreens):
+        for i in range(num_greens):
             place2=pattern.index(2)
             if guess[place2]!=answer[place2]:
                 fits=False
@@ -121,15 +113,15 @@ def ismatch(guess, answer, pattern):
             pattern=pattern[:place2]+pattern[place2+1:]
 
     if fits:    
-        numyellows=pattern.count(1)
-        for i in range(numyellows):
+        num_yellows=pattern.count(1)
+        for i in range(num_yellows):
             place1=pattern.index(1)
             if guess[place1] not in answer:
                 fits=False
                 break
-            inanswer=answer.index(guess[place1])
+            in_answer=answer.index(guess[place1])
             guess=guess[:place1]+guess[place1+1:]
-            answer=answer[:inanswer]+answer[inanswer+1:]
+            answer=answer[:in_answer]+answer[in_answer+1:]
             pattern=pattern[:place1]+pattern[place1+1:]
     if fits:
         for i in range(len(pattern)):
@@ -140,9 +132,9 @@ def ismatch(guess, answer, pattern):
     
     return fits
 
-def compilelist(guess, colors, posswords):
+def compile_list(guess, colors, poss_words):
 
-    colorsint=()
+    colors_int=()
     for i in range(len(colors)):
         if colors[i]=="g":
             num=2
@@ -150,115 +142,116 @@ def compilelist(guess, colors, posswords):
             num=1
         else:
             num=0
-        colorsint+=(num,)
+        colors_int+=(num,)
 
-    matchlist=[]
-    if colorsint!=(2,2,2,2,2):
-        for word in posswords:
+    match_list=[]
+    if colors_int!=(2,2,2,2,2):
+        for word in poss_words:
                 
-            if ismatch(guess, word, colorsint):
-                matchlist.append(word)
-    return matchlist
+            if is_match(guess, word, colors_int):
+                match_list.append(word)
+    return match_list
 
-def calculateword():
+def calculate_word():
     
-    global wordletype
-    global possanswerslist
-    global allwords
-    global attemptnum
+    global wordle_type
+    global poss_answers_list
+    global all_words
+    global attempt_num
     
-    wordguess=entryword.get()
-    entrycolors=[entrycolor1.get(),entrycolor2.get(),entrycolor3.get(),entrycolor4.get()]
-    entrycolors=entrycolors[:wordletype]
-    valid= (len(entryword.get())==5)
-    for i in range(wordletype):
-        valid=valid and (len(entrycolors[i])==5)
+    word_guess=entry_word.get()
+    entry_colors=[entry_color1.get(),entry_color2.get(),entry_color3.get(),entry_color4.get()]
+    entry_colors=entry_colors[:wordle_type]
+    valid=(len(entry_word.get())==5)
+    for i in range(wordle_type):
+        valid=valid and (len(entry_colors[i])==5)
     if not valid:
         root.mainloop()
-    if attemptnum==0:
+    if attempt_num==0:
         
         
         file=open("allWordsEnglishFew.txt", "r")
-        allwords=ast.literal_eval(file.readlines()[0])
+        all_words=ast.literal_eval(file.readlines()[0])
         file.close()
-        for i in range(wordletype):
-            possanswerslist[i]=allwords
-    attemptnum+=1
-    for i in range(wordletype):
-        possanswerslist[i]=compilelist(wordguess, entrycolors[i], possanswerslist[i])
+        for i in range(wordle_type):
+            poss_answers_list[i]=all_words
+    attempt_num+=1
+    for i in range(wordle_type):
+        poss_answers_list[i]=compile_list(word_guess, entry_colors[i], poss_answers_list[i])
     
-    bestguesses=findbestguess(possanswerslist)
-    print(possanswerslist)
-    nextstr="Next guess(es): "
-    if len(bestguesses)==1:
-        nextstr+=bestguesses[0]
-    elif len(bestguesses)==2:
-        nextstr+=bestguesses[0] + " or " + bestguesses[1]
+    best_guesses=find_best_guess(poss_answers_list)
+    print(poss_answers_list)
+    next_str="Next guess(es): "
+    if len(best_guesses)==1:
+        next_str+=best_guesses[0]
+    elif len(best_guesses)==2:
+        next_str+=best_guesses[0] + " or " + best_guesses[1]
     else:
-        for word in bestguesses[:-1]:
-            nextstr+=word + ", "
-        nextstr+="or " + bestguesses[-1]
+        for word in best_guesses[:-1]:
+            next_str+=word + ", "
+        next_str+="or " + best_guesses[-1]
     
-    labelnext=Label(root, text=nextstr, bg='orange')    
-    canvas1.create_window(5*boxsize, 6*boxsize, width=11*boxsize, height=.5*boxsize, window=labelnext)   
+    labelnext=Label(root, text=next_str, bg='orange')    
+    canvas1.create_window(5*box_size, 6*box_size, width=11*box_size, height=.5*box_size, window=labelnext)   
 
 def reset():
-    global wordletype
-    global possanswerslist
-    global attemptnum
-    attemptnum=0
-    gametypeentry=str.lower(entrytype.get())
-    if gametypeentry=="w":
-        wordletype=1
-    elif gametypeentry=="d":
-        wordletype=2
-    elif gametypeentry=="q":
-        wordletype=4
+    global wordle_type
+    global poss_answers_list
+    global attempt_num
+    attempt_num=0
+    game_type_entry=str.lower(entry_type.get())
+    if game_type_entry=="w":
+        wordle_type=1
+    elif game_type_entry=="d":
+        wordle_type=2
+    elif game_type_entry=="q":
+        wordle_type=4
     else:
         root.mainloop()
-    possanswerslist=[[]for i in range(wordletype)]
+    poss_answers_list=[[]for i in range(wordle_type)]
     
-attemptnum=0
-wordletype=0    
-allwords=[]
-possanswerslist=[]
+attempt_num=0
+wordle_type=0    
+all_words=[]
+poss_answers_list=[]
 root=Tk()
-boxsize=90
-canvas1=Canvas(root, width = 9*boxsize, height=7*boxsize, bg='blue')
+box_size=90
+canvas1=Canvas(root, width = 9*box_size, height=7*box_size, bg='blue')
 canvas1.pack()
-labelword=Label(root, text="Your guess:")
-labelreset=Label(root, text="Reset")
-labelenter=Label(root, text="Enter")
-labelcolors=Label(root, text="Order of colors:")
-labeltype=Label(root, text="Wordle, Duordle, or Quordle?")
-entrytype=Entry(root)
-entryword=Entry(root)
+label_word=Label(root, text="Your guess:")
+label_reset=Label(root, text="Reset")
+label_enter=Label(root, text="Enter")
+label_colors=Label(root, text="Order of colors:")
+label_type=Label(root, text="Wordle, Dordle, or Quordle?")
+entry_type=Entry(root)
+entry_word=Entry(root)
 
 
-entrycolor1=Entry(root)
-entrycolor2=Entry(root)
-entrycolor3=Entry(root)
-entrycolor4=Entry(root)
+entry_color1=Entry(root)
+entry_color2=Entry(root)
+entry_color3=Entry(root)
+entry_color4=Entry(root)
 
-canvas1.create_window(2*boxsize, 1*boxsize, width=2*boxsize, height=.5*boxsize, window=labelword)
-canvas1.create_window(2*boxsize, 2*boxsize, width=2*boxsize, height=.5*boxsize, window=entryword)
-
-
+canvas1.create_window(2*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_word)
+canvas1.create_window(2*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_word)
 
 
-canvas1.create_window(4.5*boxsize, 1*boxsize, width=2*boxsize, height=.5*boxsize, window=labelcolors)
-canvas1.create_window(4.5*boxsize, 2*boxsize, width=2*boxsize, height=.5*boxsize, window=entrycolor1)
-canvas1.create_window(4.5*boxsize, 3*boxsize, width=2*boxsize, height=.5*boxsize, window=entrycolor2)
-canvas1.create_window(4.5*boxsize, 4*boxsize, width=2*boxsize, height=.5*boxsize, window=entrycolor3)
-canvas1.create_window(4.5*boxsize, 5*boxsize, width=2*boxsize, height=.5*boxsize, window=entrycolor4)
 
-canvas1.create_window(7*boxsize, 1*boxsize, width=2*boxsize, height=.5*boxsize, window=labeltype)
-canvas1.create_window(7*boxsize, 2*boxsize, width=2*boxsize, height=.5*boxsize, window=entrytype)
-buttonenter=Button(text="Enter", command=calculateword)
-canvas1.create_window(7*boxsize, 5*boxsize, width=2*boxsize, height=.5*boxsize, window=buttonenter)
 
-buttonreset=Button(text="Reset game", command=reset)
-canvas1.create_window(7*boxsize, 4*boxsize, width=2*boxsize, height=.5*boxsize, window=buttonreset)
+canvas1.create_window(4.5*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_colors)
+canvas1.create_window(4.5*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_color1)
+canvas1.create_window(4.5*box_size, 3*box_size, width=2*box_size, height=.5*box_size, window=entry_color2)
+canvas1.create_window(4.5*box_size, 4*box_size, width=2*box_size, height=.5*box_size, window=entry_color3)
+canvas1.create_window(4.5*box_size, 5*box_size, width=2*box_size, height=.5*box_size, window=entry_color4)
+
+canvas1.create_window(7*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_type)
+canvas1.create_window(7*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_type)
+button_enter=Button(text="Enter", command=calculate_word)
+canvas1.create_window(7*box_size, 5*box_size, width=2*box_size, height=.5*box_size, window=button_enter)
+
+button_reset=Button(text="Reset game", command=reset)
+canvas1.create_window(7*box_size, 4*box_size, width=2*box_size, height=.5*box_size, window=button_reset)
 
 root.mainloop()
 
+#if just as good as each other, pick one in answer list
