@@ -1,4 +1,4 @@
-#test
+#tares calculated best guess
 import math
 import ast
 from tkinter import *
@@ -36,8 +36,9 @@ def valid_pat(guess, pattern):
 def find_best_guess(poss_answers):
     global wordle_type
     global attempt_num
-    patterns=create_pattern((0,1,2), 5)   #hardcoded to be 5 letters
-    best_guesses=[(-1,None),(-1,None),(-1,None),(-1,None),(-1,None)]
+    global length_word
+    patterns=create_pattern((0,1,2), length_word)   #hardcoded to be 5 letters
+    best_guesses=[(-1,None) for i in range(5)]
     list_of_entropys=[{} for i in range(wordle_type)]
 
     for i in range(wordle_type):
@@ -46,7 +47,7 @@ def find_best_guess(poss_answers):
             list_of_entropys[0][poss_answers[i][0]]=1000
             print(poss_answers[i][0], "inf")
         elif num_answers!=0:
-            if attempt_num<=wordle_type/2:
+            if attempt_num<=(wordle_type+1)/2:
                 guess_list=poss_answers[i]
             else:
                 guess_list=all_words
@@ -158,23 +159,16 @@ def calculate_word():
     global poss_answers_list
     global all_words
     global attempt_num
+    global length_word
     
     word_guess=entry_word.get()
-    entry_colors=[entry_color1.get(),entry_color2.get(),entry_color3.get(),entry_color4.get()]
+    entry_colors=[text_colors.get("1.0","2.0-1c"),text_colors.get("2.0","3.0-1c"),text_colors.get("3.0","4.0-1c"),text_colors.get("4.0","5.0-1c")]
     entry_colors=entry_colors[:wordle_type]
-    valid=(len(entry_word.get())==5)
+    valid=(len(word_guess)==length_word)
     for i in range(wordle_type):
-        valid=valid and (len(entry_colors[i])==5)
+        valid=valid and (len(entry_colors[i])==length_word)
     if not valid:
         root.mainloop()
-    if attempt_num==0:
-        
-        
-        file=open("allWordsEnglishFew.txt", "r")
-        all_words=ast.literal_eval(file.readlines()[0])
-        file.close()
-        for i in range(wordle_type):
-            poss_answers_list[i]=all_words
     attempt_num+=1
     for i in range(wordle_type):
         poss_answers_list[i]=compile_list(word_guess, entry_colors[i], poss_answers_list[i])
@@ -192,61 +186,118 @@ def calculate_word():
         next_str+="or " + best_guesses[-1]
     
     labelnext=Label(root, text=next_str, bg='orange')    
-    canvas1.create_window(5*box_size, 6*box_size, width=11*box_size, height=.5*box_size, window=labelnext)   
+    canvas_game.create_window(2.75*box_size, 3*box_size, width=4.25*box_size, height=.5*box_size, window=labelnext)   
 
-def reset():
+
+
+def start_game():
+    global canvas_game
+    global canvas_start
+    global is_start
     global wordle_type
     global poss_answers_list
     global attempt_num
-    attempt_num=0
+    global length_word
+    global all_words
+
     game_type_entry=str.lower(entry_type.get())
-    if game_type_entry=="w":
+    if game_type_entry=="wordle":
         wordle_type=1
-    elif game_type_entry=="d":
+    elif game_type_entry=="dordle":
         wordle_type=2
-    elif game_type_entry=="q":
+    elif game_type_entry=="quordle":
         wordle_type=4
     else:
         root.mainloop()
+    is_start=False
+    attempt_num=0
+    canvas_start.destroy()
+    canvas_game.pack()
     poss_answers_list=[[]for i in range(wordle_type)]
+    length_word=entry_length.get()
+    if str.lower(length_word)=="w":
+        length_word=5
+        file=open("allWordsEnglishFew.txt", "r")
+        all_words=ast.literal_eval(file.readlines()[0])
+        file.close()
+    else:
+        length_word=int(length_word)
+        file=open("allWordsEnglishFew.txt", "r")
+        all_words=ast.literal_eval(file.readlines()[length_word])
+        file.close()
+
+    for i in range(wordle_type):
+        poss_answers_list[i]=all_words
     
+def reset_game():
+    global canvas_game
+    global canvas_start
+    global is_start
+    global wordle_type
+    global poss_answers_list
+    global attempt_num
+    global length_word
+    global all_words
+    canvas_game.destroy()
+    canvas_start.pack()
+    is_start=True
+    wordle_type=0
+    poss_answers_list=[]
+    attempt_num=0
+    all_words=[]
+
 attempt_num=0
-wordle_type=0    
+wordle_type=0 
+length_word=-1   
 all_words=[]
 poss_answers_list=[]
-root=Tk()
+new_game_start=True
 box_size=90
-canvas1=Canvas(root, width = 9*box_size, height=7*box_size, bg='blue')
-canvas1.pack()
-label_word=Label(root, text="Your guess:")
-label_reset=Label(root, text="Reset")
-label_enter=Label(root, text="Enter")
-label_colors=Label(root, text="Order of colors:")
-label_type=Label(root, text="Wordle, Dordle, or Quordle?")
+
+root=Tk()
+canvas_start=Canvas(root, width = 4*box_size, height=3*box_size, bg='orange')
+
+label_type=Label(root, text="Wordle, Dordle, or Quordle?", anchor='w')
 entry_type=Entry(root)
+
+canvas_start.create_window(2*box_size, .75*box_size, width=3*box_size, height=.5*box_size, window=label_type)
+canvas_start.create_window(2.85*box_size, .75*box_size, width=.8*box_size, height=.3*box_size, window=entry_type)
+
+label_length=Label(root, text="Length of words: ", anchor="w")
+entry_length=Entry(root)
+canvas_start.create_window(1.5*box_size, 1.5*box_size, width=2*box_size, height=.5*box_size, window=label_length)
+canvas_start.create_window(2*box_size, 1.5*box_size, width=.5*box_size, height=.3*box_size, window=entry_length)
+
+button_start=Button(text="Start game", command=start_game)
+canvas_start.create_window(1*box_size, 2.25*box_size, width=1*box_size, height=.5*box_size, window=button_start)
+
+
+
+
+canvas_game=Canvas(root, width = 5.5*box_size, height=3.75*box_size, bg='blue')
+
+label_word=Label(root, text="Your guess:", anchor="w")
 entry_word=Entry(root)
+canvas_game.create_window(1.5*box_size, .75*box_size, width=1.75*box_size, height=.5*box_size, window=label_word)
+canvas_game.create_window(1.85*box_size, .75*box_size, width=.7*box_size, height=.3*box_size, window=entry_word)
 
-
-entry_colors=Entry(root)
-
-canvas1.create_window(2*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_word)
-canvas1.create_window(2*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_word)
-
-
-
-
-canvas1.create_window(4.5*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_colors)
-canvas1.create_window(4.5*box_size, 2*box_size, width=2*box_size, height=3*box_size, window=entry_colors)
-
-
-canvas1.create_window(7*box_size, 1*box_size, width=2*box_size, height=.5*box_size, window=label_type)
-canvas1.create_window(7*box_size, 2*box_size, width=2*box_size, height=.5*box_size, window=entry_type)
 button_enter=Button(text="Enter", command=calculate_word)
-canvas1.create_window(7*box_size, 5*box_size, width=2*box_size, height=.5*box_size, window=button_enter)
+canvas_game.create_window(1.5*box_size, 1.5*box_size, width=1.75*box_size, height=.5*box_size, window=button_enter)
 
-button_reset=Button(text="Reset game", command=reset)
-canvas1.create_window(7*box_size, 4*box_size, width=2*box_size, height=.5*box_size, window=button_reset)
+button_enter=Button(text="New Game", command=reset_game)
+canvas_game.create_window(1.5*box_size, 2.25*box_size, width=1.75*box_size, height=.5*box_size, window=button_enter)
 
+
+
+label_colors=Label(root, text="Order of colors:", anchor="n")
+text_colors=Text(root)
+canvas_game.create_window(3.875*box_size, 1.375*box_size, width=2*box_size, height=1.75*box_size, window=label_colors)
+canvas_game.create_window(3.875*box_size, 1.375*box_size, width=1.5*box_size, height=1.25*box_size, window=text_colors)
+
+
+
+
+canvas_start.pack()
 root.mainloop()
 
 #if just as good as each other, pick one in answer list
