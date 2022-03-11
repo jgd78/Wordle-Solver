@@ -155,8 +155,8 @@ def calculate_word():
 
     global My_game
     
-    word_guess=canvas2.entry_word.get()
-    entry_colors=[canvas2.text_colors.get("1.0","2.0-1c"),canvas2.text_colors.get("2.0","3.0-1c"),canvas2.text_colors.get("3.0","4.0-1c"),canvas2.text_colors.get("4.0","5.0-1c")]
+    word_guess=My_game.canvas2.entry_word.get()
+    entry_colors=[My_game.canvas2.text_colors.get("1.0","2.0-1c"),My_game.canvas2.text_colors.get("2.0","3.0-1c"),My_game.canvas2.text_colors.get("3.0","4.0-1c"),My_game.canvas2.text_colors.get("4.0","5.0-1c")]
     entry_colors=entry_colors[:My_game.wordle_type]
     valid=(len(word_guess)==My_game.length_word)
     for i in range(My_game.wordle_type):
@@ -180,21 +180,18 @@ def calculate_word():
         next_str+="or " + best_guesses[-1] 
     next_str+="."
     labelnext=Label(root, text=next_str, bg='orange')    
-    canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)   
+    My_game.canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)   
 
 
 
 def start_game():
-    global canvas_game
-    global canvas1
-    global canvas_start
-    global canvas2
+
     global My_game
-    canvas_start.destroy()
-    canvas2=My_canvas(root)
-    canvas_game=canvas2.game_canvas
-    canvas_game.pack()
-    game_type_entry=str.lower(canvas1.entry_type.get())
+    My_game.canvas_start.destroy()
+    My_game.canvas2=My_canvas(root)
+    My_game.canvas_game=My_game.canvas2.game_canvas
+    My_game.canvas_game.pack()
+    game_type_entry=str.lower(My_game.canvas1.entry_type.get())
     if game_type_entry=="wordle":
         My_game.wordle_type=1
     elif game_type_entry=="dordle":
@@ -207,7 +204,7 @@ def start_game():
     My_game.attempt_num=0
 
     My_game.poss_answers_list=[[]for i in range(My_game.wordle_type)]
-    My_game.length_word=canvas1.entry_length.get()
+    My_game.length_word=My_game.canvas1.entry_length.get()
     if str.lower(My_game.length_word)=="w":
         My_game.length_word=5
         file=open("allWordsEnglishFew.txt", "r")
@@ -227,22 +224,19 @@ def start_game():
     else: 
         best_first = "not known"
     labelnext=Label(root, text="Best first guess is " + best_first + ".", bg='orange')    
-    canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)
+    My_game.canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)
     
 def reset_game():
-    global canvas_game
-    global canvas1
-    global canvas_start
-    global canvas2
+
     global My_game
-    canvas_game.destroy()
-    canvas1=My_canvas(root)
-    canvas_start=canvas1.start_canvas
-    canvas_start.pack()
+    My_game.canvas_game.destroy()
+    My_game.canvas1=My_canvas(root)
+    My_game.canvas_start=My_game.canvas1.start_canvas
+    My_game.canvas_start.pack()
     My_game=Game()
 
 class Game:
-    def __init__(self):
+    def __init__(self, canvas1, canvas2):
         
         self.attempt_num=0
         self.wordle_type=0
@@ -251,6 +245,10 @@ class Game:
         self.poss_answers_list=[]
         self.new_game_start=True
         self.box_size=base_size
+        self.canvas1=canvas1
+        self.canvas2=canvas2
+        self.canvas_start=self.canvas1.start_canvas
+        self.canvas_game=self.canvas2.game_canvas
 
 
 class My_canvas():
@@ -289,27 +287,17 @@ class My_canvas():
         self.game_canvas.create_window(3.875*base_size, 1.375*base_size, width=1.5*base_size, height=1.25*base_size, window=self.text_colors) 
 
 base_size=90
-My_game=Game()
 
-print(My_game.box_size)
+
 root=Tk()
 canvas1=My_canvas(root)
-canvas_start=canvas1.start_canvas
-
-
-
-
-
-
 canvas2=My_canvas(root)
-canvas_game=canvas2.game_canvas
+
+My_game=Game(canvas1, canvas2)
 
 
 
-
-
-
-canvas_start.pack()
+My_game.canvas_start.pack()
 root.mainloop()
 
 #if just as good as each other, pick one in answer list
