@@ -1,0 +1,1 @@
+from wordleSolver.py import create_pattern

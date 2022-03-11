@@ -3,7 +3,11 @@ import math
 import ast
 from tkinter import *
 
-def create_pattern(values,length):
+def create_pattern(values,length):  # "create_pattern" creates all possible color patterns that may be associated with a given guess and answer combination.
+                                    # "values" is tuple of values representing the possible colors of the letters returned when a word is guessed.
+                                    # Currently, "values" is hard-coded to (0,1,2) where 0 represents black, 1 represents yellow, and 2 represents green.
+                                    # "Length" is an int and is the length of the words in the current game.
+                                    # "ret_list" is returned and is a list of tuples representing all possible combinations of black, yellow, and green tiles.
     if length==0:
         return [()]
     ret_list=[]
@@ -13,7 +17,12 @@ def create_pattern(values,length):
             ret_list.append((val,)+pattern)
     return ret_list
 
-def valid_pat(guess, pattern):
+def valid_pat(guess, pattern):      # "valid_pat" determines if a pattern of black, yellow, and green tiles is possible with the given guess.
+                                    # "guess" is a string represent the guess being made.
+                                    # "pattern" is the color pattern to be returned from guessing "guess".
+                                    # Ex. if your guess is "tater", the pattern associated with it cannot possibly be bbybb since the first
+                                            # 't' would always be yellow before the second 't' was. However, we could have bbgbb or ybgbb.
+                                    # "valid" is returned and is a boolean indicating whether or not "pattern" is a valid output pattern for guess "guess".
     valid=True
     for i in range(len(pattern)):
         temp_guess=guess
@@ -33,9 +42,16 @@ def valid_pat(guess, pattern):
                 temp_pattern=temp_pattern[let_pos+1:]
     return valid
 
-def find_best_guess(poss_answers):
+def find_best_guess(poss_answers):          # "find_best_guess" takes a list of possible answers for the game called "poss_answers" and determines which guess 
+                                                    # would, on average, eliminate the most possible answers for the next time the user has to guess. This is
+                                                    # determined by finding the average entropy of each word in "poss_answers" when guessed with entropy 
+                                                    # being equal to E(I)= sum_x p(x)*log_2(1/(p(x))) where 'x' is a specific color combination, and p(x) is the probability
+                                                    # that a specific color 'x' will be returned given "poss_answers". I.e., it is the percentage of words that would still fit
+                                                    # if one made a guess from poss_answers.
+                                            # "ret" is returned and is a list of strings with max length 5 said to be the best five guesses to be made next that 
+                                                    # will maximize E(I).
     global My_game
-    patterns=create_pattern((0,1,2), My_game.length_word)   #hardcoded to be 5 letters
+    patterns=create_pattern((0,1,2), My_game.length_word) 
     best_guesses=[(-1,None) for i in range(5)]
     list_of_entropys=[{} for i in range(My_game.wordle_type)]
 
@@ -43,7 +59,6 @@ def find_best_guess(poss_answers):
         num_answers=len(poss_answers[i])
         if num_answers==1:
             list_of_entropys[0][poss_answers[i][0]]=1000
-            print(poss_answers[i][0], "inf")
         elif num_answers!=0:
             if My_game.attempt_num<=(My_game.wordle_type+1)/2:
                 guess_list=poss_answers[i]
@@ -65,8 +80,7 @@ def find_best_guess(poss_answers):
 
                             entropy+=p*(-math.log2(p))
                 list_of_entropys[i][guess]=entropy
-                if entropy!=0:
-                    print(guess, entropy)
+
     ret_dict={}
     for i in range(My_game.wordle_type):
         for key in list_of_entropys[i]:
@@ -92,7 +106,14 @@ def resort_five(current, check):
                 break
     return current
 
-def is_match(guess, answer, pattern):
+def is_match(guess, answer, pattern):       # "is_match" determines if "answer" is still a possible answer if the user guesses "guess"
+                                                    # where "pattern" is the combination of colors associated with each letter in "guess".
+                                            # "guess" is a string. 
+                                            # "answer" is a string of same length as "guess". 
+                                            # "pattern" is a tuple of same length as "guess" and "answer" representing the colors associated
+                                                    # with the letters in "guess".
+                                            # "fits" is returned and is a boolean indicating whether or not "answer" is still a possible answer after the user
+                                                    # guesses "guess" where "pattern" is the combination of colors associated with each letter in "guess".
     
 
     fits=True
@@ -131,7 +152,15 @@ def is_match(guess, answer, pattern):
     
     return fits
 
-def compile_list(guess, colors, poss_words):
+def compile_list(guess, colors, poss_words):        # "compile_list" determines the sub-list of "poss_words" that are still potential 
+                                                            # answers to the puzzle once guess "guess" is made with letters corresponding
+                                                            # to the values found in "colors".
+                                                    # "guess" is a string.
+                                                    # "colors" is a tuple of same length as string.
+                                                    # "poss_words" is a list words indicating the remaining possible answers that can 
+                                                            # still be a solution to the puzzle before guess "guess" was made.
+                                                    # "match_list" is returned and is a list of words that match the guess "guess" and
+                                                            # the colors in "colors" associated with that word.
 
     colors_int=()
     for i in range(len(colors)):
@@ -151,10 +180,11 @@ def compile_list(guess, colors, poss_words):
                 match_list.append(word)
     return match_list
 
-def calculate_word():
-
+def execute_calculation():              # "execute_calculation" reads values from the GUI that the user inputted for the guess and for the 
+                                                # colors corresponding to that guess. It verifies the user inputs are valid and then 
+                                                # calls "calculate_word" to determine the next best guesses for the user and creates
+                                                # a label to display on screen containg those best guesses.
     global My_game
-    
     word_guess=My_game.canvas2.entry_word.get()
     entry_colors=[My_game.canvas2.text_colors.get("1.0","2.0-1c"),My_game.canvas2.text_colors.get("2.0","3.0-1c"),My_game.canvas2.text_colors.get("3.0","4.0-1c"),My_game.canvas2.text_colors.get("4.0","5.0-1c")]
     entry_colors=entry_colors[:My_game.wordle_type]
@@ -163,11 +193,8 @@ def calculate_word():
         valid=valid and (len(entry_colors[i])==My_game.length_word)
     if not valid:
         root.mainloop()
-    My_game.attempt_num+=1
-    for i in range(My_game.wordle_type):
-        My_game.poss_answers_list[i]=compile_list(word_guess, entry_colors[i], My_game.poss_answers_list[i])
-    
-    best_guesses=find_best_guess(My_game.poss_answers_list)
+
+    best_guesses=calculate_word(word_guess, entry_colors)
     print(My_game.poss_answers_list)
     next_str="Next guess(es): "
     if len(best_guesses)==1:
@@ -181,14 +208,34 @@ def calculate_word():
     next_str+="."
     labelnext=Label(root, text=next_str, bg='orange')    
     My_game.canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)   
+    
+def calculate_word(word_guess, entry_colors):       # "calculate_word" takes in "word_guess" and "entry_colors" to determine what the best
+                                                            # next guess for the user would be based on the word guessed and the list of 
+                                                            # strings in "entry_colors" representing the colors associated with each 
+                                                            # letter in "word_guess" for each of the 1 to 4 possible games depending
+                                                            # on if one is playing wordle, dordle, or quordle.
+                                                    # "word_guess" is a string.
+                                                    # "entry_colors" is a list of strings. 
+                                                    # "suggested_guesses" is returned and is a list of max length 5 that is the best guesses to be made.
+    global My_game
+    
+    
+    My_game.attempt_num+=1
+    for i in range(My_game.wordle_type):
+        My_game.poss_answers_list[i]=compile_list(word_guess, entry_colors[i], My_game.poss_answers_list[i])
+    
+    suggested_guesses=find_best_guess(My_game.poss_answers_list)
+    return suggested_guesses
 
 
 
-def start_game():
+def start_game():               # "start_game" is a fucntion used to initialize a new game by destroying the old canvas
+                                        # and pack a new one using the game parameters the user has entered such as 
+                                        # the game type (wordle, dordle, or quordle) and the word length.
 
     global My_game
     My_game.canvas_start.destroy()
-    My_game.canvas2=My_canvas(root)
+    My_game.canvas2=My_canvas(root, My_game.box_size)
     My_game.canvas_game=My_game.canvas2.game_canvas
     My_game.canvas_game.pack()
     game_type_entry=str.lower(My_game.canvas1.entry_type.get())
@@ -226,17 +273,21 @@ def start_game():
     labelnext=Label(root, text="Best first guess is " + best_first + ".", bg='orange')    
     My_game.canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)
     
-def reset_game():
+def reset_game():           # "reset_game" ends the current game by destroying the canvas and returning to the opening screen
+                                    # for the user to input a new game type (such as wordle, dordle, or quordle) and a new
+                                    # word length. Additionally, it resets the values of My_game to the init values of class "Game".
 
     global My_game
     My_game.canvas_game.destroy()
-
-    
-    My_game=Game(My_canvas(root), My_canvas(root))
+    My_game=Game(My_canvas(root,My_game.box_size), My_canvas(root, My_game.box_size), My_game.box_size)
     My_game.canvas_start.pack()
 
-class Game:
-    def __init__(self, canvas1, canvas2):
+class Game:             # "Game" is a class meant to hold all the values associated with the game.
+                        # "canvas1" is the canvas used to hold the contents for the starting screen.
+                        # "canvas2" is the canvas used to hold the contents for the gameplay screen.
+                        # "box_size" is a default value used to determine the size of the window used
+                                # while playing and will scale all boxes and windows appropiately.
+    def __init__(self, canvas1, canvas2, box_size):
         
         self.attempt_num=0
         self.wordle_type=0
@@ -244,15 +295,16 @@ class Game:
         self.all_words=[]
         self.poss_answers_list=[]
         self.new_game_start=True
-        self.box_size=base_size
+        self.box_size=box_size
         self.canvas1=canvas1
         self.canvas2=canvas2
         self.canvas_start=self.canvas1.start_canvas
         self.canvas_game=self.canvas2.game_canvas
 
 
-class My_canvas():
-    def __init__(self, root):
+class My_canvas():      # "My_canvas" is a class used to hold all the contents of a predetermined canvas so all the labels, buttons, 
+                        # text boxes, etc. can be used again with ease
+    def __init__(self, root, base_size):
         self.start_canvas=Canvas(root, width=4*base_size, height=3*base_size, bg='orange')
         self.label_type=Label(root, text="Wordle, Dordle, or Quordle?", anchor='w')
         self.entry_type=Entry(root)
@@ -275,7 +327,7 @@ class My_canvas():
         self.game_canvas.create_window(1.5*base_size, .75*base_size, width=1.75*base_size, height=.5*base_size, window=self.label_word)
         self.game_canvas.create_window(1.85*base_size, .75*base_size, width=.7*base_size, height=.3*base_size, window=self.entry_word)
 
-        self.button_enter=Button(text="Enter", command=calculate_word)
+        self.button_enter=Button(text="Enter", command=execute_calculation)
         self.game_canvas.create_window(1.5*base_size, 1.5*base_size, width=1.75*base_size, height=.5*base_size, window=self.button_enter)
 
         self.button_reset=Button(text="New Game", command=reset_game)
@@ -286,16 +338,14 @@ class My_canvas():
         self.game_canvas.create_window(3.875*base_size, 1.375*base_size, width=2*base_size, height=1.75*base_size, window=self.label_colors)
         self.game_canvas.create_window(3.875*base_size, 1.375*base_size, width=1.5*base_size, height=1.25*base_size, window=self.text_colors) 
 
-base_size=90
-
-
 root=Tk()
+box_size=90
+My_game=Game(My_canvas(root, box_size), My_canvas(root, box_size), box_size)
+def main():
+    My_game.canvas_start.pack()
+    root.mainloop()
+if __name__=="__main__":
+    main()
 
-My_game=Game(My_canvas(root), My_canvas(root))
-
-
-
-My_game.canvas_start.pack()
-root.mainloop()
 
 #if just as good as each other, pick one in answer list
