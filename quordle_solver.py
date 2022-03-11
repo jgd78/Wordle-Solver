@@ -230,10 +230,10 @@ def reset_game():
 
     global My_game
     My_game.canvas_game.destroy()
-    My_game.canvas1=My_canvas(root)
-    My_game.canvas_start=My_game.canvas1.start_canvas
+
+    
+    My_game=Game(My_canvas(root), My_canvas(root))
     My_game.canvas_start.pack()
-    My_game=Game()
 
 class Game:
     def __init__(self, canvas1, canvas2):
@@ -290,10 +290,8 @@ base_size=90
 
 
 root=Tk()
-canvas1=My_canvas(root)
-canvas2=My_canvas(root)
 
-My_game=Game(canvas1, canvas2)
+My_game=Game(My_canvas(root), My_canvas(root))
 
 
 
