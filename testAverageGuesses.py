@@ -1,13 +1,9 @@
 import wordleSolver as ws
 import ast
+import random
 from tkinter import *
-file=open("allWordsEnglishFew.txt", "r")
-My_game.all_words=ast.literal_eval(file.readlines()[0])
-file.close()
-ws.My_game.wordle_type=1
-ws.My_game.length_word=5
-total_guesses=0
-fails=0
+import numpy as np
+
 def determine_colors(guess, answer):
     pattern="."*len(guess)
     for i in range(len(guess)):
@@ -30,20 +26,54 @@ def determine_colors(guess, answer):
     return pattern
 
 
-def play_game(answer):
-    global total_guesses
-    global fails
-    ws.My_game.poss_answer_list[0]=My_game.all_words
-    ws.My_game.attempt_num=0
+def play_game(answer, num_tries):
+    ws.Game.poss_answers_list[0]=ws.Game.all_words
+    ws.Game.attempt_num=0
     next_guess="tares"
     color_results=[determine_colors(next_guess, answer)]
     attempts=1
     while color_results!=["g"*len(answer)]:
+
         attempts+=1
-        next_guess=calculate_word(first_guess, color_results)[0]
+        next_guess=ws.calculate_word(next_guess, color_results)[0]
         color_results=[determine_colors(next_guess, answer)]
-    if attempts>6:
-        fails+=1
-    total_guesses+=attempts
-    
-print(fails)
+    if attempts<=6:
+        num_tries[attempts-1]+=1
+    else:
+        num_tries[6]+=1
+    return num_tries
+
+def gather_words():
+    num_words_tested=500
+    file=open("allWordsEnglishFew.txt", "r")
+    all_words=ast.literal_eval(file.readlines()[0])
+    file.close()
+    num_words=len(all_words)
+    test_words=[]
+    inc=num_words//num_words_tested
+    i=random.randint(1,inc)-1
+    while i<num_words:
+        test_words.append(all_words[i])
+        i+=inc
+    return test_words
+
+def main():
+    ws.Game.all_words=gather_words()
+
+    ws.Game.wordle_type=1
+    ws.Game.length_word=5
+    ws.Game.poss_answers_list=[[]]
+    num_tries=np.zeros(7)
+
+    for word in ws.Game.all_words:
+        print(word)
+        num_tries=play_game(word, num_tries)
+    total_tries=0
+    for i in range(6):
+        total_tries+=num_tries[i]*(i+1)
+        average_tries=total_tries/len(ws.Game.all_words)
+        print("Solved in " + str(i+1) + "attempts: " + str(num_tries[i]))
+    print("Number that failed: " + str(num_tries[6]))
+    print("Average number of tries: " + str(average_tries))
+if __name__=="__main__":
+    main()

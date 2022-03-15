@@ -56,13 +56,19 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
 
     for i in range(Game.wordle_type):
         num_answers=len(poss_answers[i])
+        
         if num_answers==1:
             list_of_entropys[0][poss_answers[i][0]]=1000
+            #print(poss_answers[i][0], "inf")
         elif num_answers!=0:
-            if Game.attempt_num<=(Game.wordle_type+1)/2:
-                guess_list=poss_answers[i]
-            else:
-                guess_list=Game.all_words
+            #if Game.attempt_num<=(Game.wordle_type+1)/2:
+            #    guess_list=poss_answers[i]
+            #else:
+            #    guess_list=Game.all_words
+
+            guess_list=poss_answers[i]
+
+
             for guess in guess_list:
                 entropy=0
                 for pattern in patterns:
@@ -75,6 +81,7 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
                                 matches+=1
                         
                         if matches!=0:
+                            #print(guess, entropy)
                             p=matches/num_answers
 
                             entropy+=p*(-math.log2(p))
@@ -196,7 +203,7 @@ def execute_calculation():              # "execute_calculation" reads values fro
         root.mainloop()
 
     best_guesses=calculate_word(word_guess, entry_colors)
-    print(Game.poss_answers_list)
+    #print(Game.poss_answers_list)
     next_str="Next guess(es): "
     if len(best_guesses)==1:
         next_str+=best_guesses[0]
