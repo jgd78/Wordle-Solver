@@ -43,11 +43,8 @@ def play_game(answer, num_tries):
         num_tries[6]+=1
     return num_tries
 
-def gather_words():
-    num_words_tested=500
-    file=open("allWordsEnglishFew.txt", "r")
-    all_words=ast.literal_eval(file.readlines()[0])
-    file.close()
+def gather_words(all_words, num_words_tested):
+    
     num_words=len(all_words)
     test_words=[]
     inc=num_words//num_words_tested
@@ -58,22 +55,26 @@ def gather_words():
     return test_words
 
 def main():
-    ws.Game.all_words=gather_words()
+    file=open("allWordsEnglishFew.txt", "r")
+    ws.Game.all_words=ast.literal_eval(file.readlines()[0])
+    file.close()    
+    answer_words=gather_words(ws.Game.all_words, 10)
 
     ws.Game.wordle_type=1
     ws.Game.length_word=5
     ws.Game.poss_answers_list=[[]]
     num_tries=np.zeros(7)
 
-    for word in ws.Game.all_words:
+    for word in answer_words:
         print(word)
         num_tries=play_game(word, num_tries)
     total_tries=0
     for i in range(6):
         total_tries+=num_tries[i]*(i+1)
-        average_tries=total_tries/len(ws.Game.all_words)
+        average_tries=total_tries/len(answer_words)
         print("Solved in " + str(i+1) + "attempts: " + str(num_tries[i]))
     print("Number that failed: " + str(num_tries[6]))
     print("Average number of tries: " + str(average_tries))
+    
 if __name__=="__main__":
     main()
