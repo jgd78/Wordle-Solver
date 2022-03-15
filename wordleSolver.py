@@ -50,20 +50,19 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
                                                     # if one made a guess from poss_answers.
                                             # "ret" is returned and is a list of strings with max length 5 said to be the best five guesses to be made next that 
                                                     # will maximize E(I).
-    global My_game
-    patterns=create_pattern((0,1,2), My_game.length_word) 
+    patterns=create_pattern((0,1,2), Game.length_word) 
     best_guesses=[(-1,None) for i in range(5)]
-    list_of_entropys=[{} for i in range(My_game.wordle_type)]
+    list_of_entropys=[{} for i in range(Game.wordle_type)]
 
-    for i in range(My_game.wordle_type):
+    for i in range(Game.wordle_type):
         num_answers=len(poss_answers[i])
         if num_answers==1:
             list_of_entropys[0][poss_answers[i][0]]=1000
         elif num_answers!=0:
-            if My_game.attempt_num<=(My_game.wordle_type+1)/2:
+            if Game.attempt_num<=(Game.wordle_type+1)/2:
                 guess_list=poss_answers[i]
             else:
-                guess_list=My_game.all_words
+                guess_list=Game.all_words
             for guess in guess_list:
                 entropy=0
                 for pattern in patterns:
@@ -82,11 +81,11 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
                 list_of_entropys[i][guess]=entropy
 
     ret_dict={}
-    for i in range(My_game.wordle_type):
+    for i in range(Game.wordle_type):
         for key in list_of_entropys[i]:
             average_entropy=0
             if key not in ret_dict:                
-                for i in range(My_game.wordle_type):
+                for i in range(Game.wordle_type):
                     if key in list_of_entropys[i]:
                         average_entropy+=list_of_entropys[i].get(key)
                 ret_dict[key]=average_entropy/4
@@ -184,18 +183,20 @@ def execute_calculation():              # "execute_calculation" reads values fro
                                                 # colors corresponding to that guess. It verifies the user inputs are valid and then 
                                                 # calls "calculate_word" to determine the next best guesses for the user and creates
                                                 # a label to display on screen containg those best guesses.
-    global My_game
-    word_guess=My_game.canvas2.entry_word.get()
-    entry_colors=[My_game.canvas2.text_colors.get("1.0","2.0-1c"),My_game.canvas2.text_colors.get("2.0","3.0-1c"),My_game.canvas2.text_colors.get("3.0","4.0-1c"),My_game.canvas2.text_colors.get("4.0","5.0-1c")]
-    entry_colors=entry_colors[:My_game.wordle_type]
-    valid=(len(word_guess)==My_game.length_word)
-    for i in range(My_game.wordle_type):
-        valid=valid and (len(entry_colors[i])==My_game.length_word)
+    word_guess=Game.curr_canv_info.entry_word.get()
+    entry_colors=[Game.curr_canv_info.text_colors.get("1.0","2.0-1c"),
+                Game.curr_canv_info.text_colors.get("2.0","3.0-1c"),
+                Game.curr_canv_info.text_colors.get("3.0","4.0-1c"),
+                Game.curr_canv_info.text_colors.get("4.0","5.0-1c")]
+    entry_colors=entry_colors[:Game.wordle_type]
+    valid=(len(word_guess)==Game.length_word)
+    for i in range(Game.wordle_type):
+        valid=valid and (len(entry_colors[i])==Game.length_word)
     if not valid:
         root.mainloop()
 
     best_guesses=calculate_word(word_guess, entry_colors)
-    print(My_game.poss_answers_list)
+    print(Game.poss_answers_list)
     next_str="Next guess(es): "
     if len(best_guesses)==1:
         next_str+=best_guesses[0]
@@ -207,7 +208,7 @@ def execute_calculation():              # "execute_calculation" reads values fro
         next_str+="or " + best_guesses[-1] 
     next_str+="."
     labelnext=Label(root, text=next_str, bg='orange')    
-    My_game.canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)   
+    Game.curr_canv_info.canvas.create_window(2.75*Game.box_size, 3*Game.box_size, width=4.25*Game.box_size, height=.5*Game.box_size, window=labelnext)   
     
 def calculate_word(word_guess, entry_colors):       # "calculate_word" takes in "word_guess" and "entry_colors" to determine what the best
                                                             # next guess for the user would be based on the word guessed and the list of 
@@ -217,135 +218,166 @@ def calculate_word(word_guess, entry_colors):       # "calculate_word" takes in 
                                                     # "word_guess" is a string.
                                                     # "entry_colors" is a list of strings. 
                                                     # "suggested_guesses" is returned and is a list of max length 5 that is the best guesses to be made.
-    global My_game
     
     
-    My_game.attempt_num+=1
-    for i in range(My_game.wordle_type):
-        My_game.poss_answers_list[i]=compile_list(word_guess, entry_colors[i], My_game.poss_answers_list[i])
+    Game.attempt_num+=1
+    for i in range(Game.wordle_type):
+        Game.poss_answers_list[i]=compile_list(word_guess, entry_colors[i], Game.poss_answers_list[i])
     
-    suggested_guesses=find_best_guess(My_game.poss_answers_list)
+    suggested_guesses=find_best_guess(Game.poss_answers_list)
     return suggested_guesses
 
 
 
 def start_game():               # "start_game" is a fucntion used to initialize a new game by destroying the old canvas
                                         # and pack a new one using the game parameters the user has entered such as 
-                                        # the game type (wordle, dordle, or quordle) and the word length.
+                                        # the game type (wordle, dordle, or quordle) and the word length.    
+    game_type_entry=str.lower(Game.curr_canv_info.entry_type.get()).strip()
 
-    global My_game
-    My_game.canvas_start.destroy()
-    My_game.canvas2=My_canvas(root, My_game.box_size)
-    My_game.canvas_game=My_game.canvas2.game_canvas
-    My_game.canvas_game.pack()
-    game_type_entry=str.lower(My_game.canvas1.entry_type.get())
+    
     if game_type_entry=="wordle":
-        My_game.wordle_type=1
+        Game.wordle_type=1
     elif game_type_entry=="dordle":
-        My_game.wordle_type=2
+        Game.wordle_type=2
     elif game_type_entry=="quordle":
-        My_game.wordle_type=4
+        Game.wordle_type=4
     else:
         root.mainloop()
-    My_game.is_start=False
-    My_game.attempt_num=0
+    Game.attempt_num=0
 
-    My_game.poss_answers_list=[[]for i in range(My_game.wordle_type)]
-    My_game.length_word=My_game.canvas1.entry_length.get()
-    if str.lower(My_game.length_word)=="w":
-        My_game.length_word=5
+    Game.poss_answers_list=[[]for i in range(Game.wordle_type)]
+    Game.length_word=Game.curr_canv_info.entry_length.get()
+    if str.lower(Game.length_word)=="w":
+        Game.length_word=5
         file=open("allWordsEnglishFew.txt", "r")
-        My_game.all_words=ast.literal_eval(file.readlines()[0])
+        Game.all_words=ast.literal_eval(file.readlines()[0])
         file.close()
     else:
-        My_game.length_word=int(My_game.length_word)
+        Game.length_word=int(Game.length_word)
         file=open("allWordsEnglishFew.txt", "r")
-        My_game.all_words=ast.literal_eval(file.readlines()[My_game.length_word])
+        Game.all_words=ast.literal_eval(file.readlines()[Game.length_word])
         file.close()
 
-    for i in range(My_game.wordle_type):
-        My_game.poss_answers_list[i]=My_game.all_words
+    for i in range(Game.wordle_type):
+        Game.poss_answers_list[i]=Game.all_words
     best_starts=["ho", "eat", "sale", "tares", "retain", "erasion", "notaries", "relations", "clarionets", "ulcerations"]
-    if 2<=My_game.length_word<=11:
-        best_first=best_starts[My_game.length_word-2]
+    if 2<=Game.length_word<=11:
+        best_first=best_starts[Game.length_word-2]
     else: 
         best_first = "not known"
+    Game.curr_canv_info.canvas.destroy()
+    Game.curr_canv_info=Canv_skel(root)
+    Game.curr_canv_info.init_game()
+    Game.curr_canv_info.canvas.pack()
     labelnext=Label(root, text="Best first guess is " + best_first + ".", bg='orange')    
-    My_game.canvas_game.create_window(2.75*My_game.box_size, 3*My_game.box_size, width=4.25*My_game.box_size, height=.5*My_game.box_size, window=labelnext)
+    Game.curr_canv_info.canvas.create_window(2.75*Game.box_size, 3*Game.box_size, width=4.25*Game.box_size, height=.5*Game.box_size, window=labelnext)
     
-def reset_game():           # "reset_game" ends the current game by destroying the canvas and returning to the opening screen
+def reset_game():        # "reset_game" ends the current game by destroying the canvas and returning to the opening screen
                                     # for the user to input a new game type (such as wordle, dordle, or quordle) and a new
                                     # word length. Additionally, it resets the values of My_game to the init values of class "Game".
+    Game.curr_canv_info.canvas.destroy()
+    Game.curr_canv_info=Canv_skel(root)
+    Game.curr_canv_info.init_start()
+    Game.curr_canv_info.canvas.pack()
 
-    global My_game
-    My_game.canvas_game.destroy()
-    My_game=Game(My_canvas(root,My_game.box_size), My_canvas(root, My_game.box_size), My_game.box_size)
-    My_game.canvas_start.pack()
+
 
 class Game:             # "Game" is a class meant to hold all the values associated with the game.
                         # "canvas1" is the canvas used to hold the contents for the starting screen.
                         # "canvas2" is the canvas used to hold the contents for the gameplay screen.
                         # "box_size" is a default value used to determine the size of the window used
                                 # while playing and will scale all boxes and windows appropiately.
-    def __init__(self, canvas1, canvas2, box_size):
-        
-        self.attempt_num=0
-        self.wordle_type=0
-        self.length_word=-1   
-        self.all_words=[]
-        self.poss_answers_list=[]
-        self.new_game_start=True
-        self.box_size=box_size
-        self.canvas1=canvas1
-        self.canvas2=canvas2
-        self.canvas_start=self.canvas1.start_canvas
-        self.canvas_game=self.canvas2.game_canvas
+    attempt_num=0
+    wordle_type=0
+    length_word=-1
+    all_words=[]
+    poss_answers_list=[]
+    box_size=90
+    curr_canv_info=None
 
+    def __init__(self, canvas_info=None):
+        Game.curr_canv_info=canvas_info
+    
+    def reset_vals(self):
+        Game.attempt_num=0
+        Game.wordle_type=0
+        Game.length_word=-1
+        Game.all_words=[]
+        Game.poss_answers_list=[]
+        Game.box_size=90
 
-class My_canvas():      # "My_canvas" is a class used to hold all the contents of a predetermined canvas so all the labels, buttons, 
-                        # text boxes, etc. can be used again with ease
-    def __init__(self, root, base_size):
-        self.start_canvas=Canvas(root, width=4*base_size, height=3*base_size, bg='orange')
+class Canv_skel():      # "Canv_skel" is a class used to hold all the contents of a predetermined canvas so all the labels, buttons, 
+    base_size=90                    # text boxes, etc. can be used again with ease
+    def __init__(self, root):
+        self.root=root
+    def init_start(self):
+        self.canvas=Canvas(root, width=4*Canv_skel.base_size, height=3*Canv_skel.base_size, bg='orange')
         self.label_type=Label(root, text="Wordle, Dordle, or Quordle?", anchor='w')
         self.entry_type=Entry(root)
 
-        self.start_canvas.create_window(2*base_size, .75*base_size, width=3*base_size, height=.5*base_size, window=self.label_type)
-        self.start_canvas.create_window(2.85*base_size, .75*base_size, width=.8*base_size, height=.3*base_size, window=self.entry_type)
+        self.canvas.create_window(2*Canv_skel.base_size, .75*Canv_skel.base_size, width=3*Canv_skel.base_size, height=.5*Canv_skel.base_size, window=self.label_type)
+        self.canvas.create_window(2.85*Canv_skel.base_size, .75*Canv_skel.base_size, width=.8*Canv_skel.base_size, height=.3*Canv_skel.base_size, window=self.entry_type)
 
         self.label_length=Label(root, text="Length of words: ", anchor="w")
         self.entry_length=Entry(root)
-        self.start_canvas.create_window(1.5*base_size, 1.5*base_size, width=2*base_size, height=.5*base_size, window=self.label_length)
-        self.start_canvas.create_window(2*base_size, 1.5*base_size, width=.5*base_size, height=.3*base_size, window=self.entry_length)
+        self.canvas.create_window(1.5*Canv_skel.base_size, 1.5*Canv_skel.base_size, width=2*Canv_skel.base_size, height=.5*Canv_skel.base_size, window=self.label_length)
+        self.canvas.create_window(2*Canv_skel.base_size, 1.5*Canv_skel.base_size, width=.5*Canv_skel.base_size, height=.3*Canv_skel.base_size, window=self.entry_length)
 
         self.button_start=Button(text="Start game", command=start_game)
-        self.start_canvas.create_window(1*base_size, 2.25*base_size, width=1*base_size, height=.5*base_size, window=self.button_start)  
 
+        self.canvas.create_window(1*Canv_skel.base_size, 2.25*Canv_skel.base_size, width=1*Canv_skel.base_size, height=.5*Canv_skel.base_size, window=self.button_start)  
 
-        self.game_canvas=Canvas(root, width = 5.5*base_size, height=3.75*base_size, bg='blue')
+    def init_game(self):
+        self.canvas=Canvas(root, width = 5.5*Canv_skel.base_size, height=3.75*Canv_skel.base_size, bg='blue')
         self.label_word=Label(root, text="Your guess:", anchor="w")
         self.entry_word=Entry(root)
-        self.game_canvas.create_window(1.5*base_size, .75*base_size, width=1.75*base_size, height=.5*base_size, window=self.label_word)
-        self.game_canvas.create_window(1.85*base_size, .75*base_size, width=.7*base_size, height=.3*base_size, window=self.entry_word)
+        self.canvas.create_window(1.5*Canv_skel.base_size, .75*Canv_skel.base_size, width=1.75*Canv_skel.base_size, height=.5*Canv_skel.base_size, window=self.label_word)
+        self.canvas.create_window(1.85*Canv_skel.base_size, .75*Canv_skel.base_size, width=.7*Canv_skel.base_size, height=.3*Canv_skel.base_size, window=self.entry_word)
 
         self.button_enter=Button(text="Enter", command=execute_calculation)
-        self.game_canvas.create_window(1.5*base_size, 1.5*base_size, width=1.75*base_size, height=.5*base_size, window=self.button_enter)
+        self.canvas.create_window(1.5*Canv_skel.base_size, 1.5*Canv_skel.base_size, width=1.75*Canv_skel.base_size, height=.5*Canv_skel.base_size, window=self.button_enter)
 
         self.button_reset=Button(text="New Game", command=reset_game)
-        self.game_canvas.create_window(1.5*base_size, 2.25*base_size, width=1.75*base_size, height=.5*base_size, window=self.button_reset)
+        self.canvas.create_window(1.5*Canv_skel.base_size, 2.25*Canv_skel.base_size, width=1.75*Canv_skel.base_size, height=.5*Canv_skel.base_size, window=self.button_reset)
 
         self.label_colors=Label(root, text="Order of colors:", anchor="n")
         self.text_colors=Text(root)
-        self.game_canvas.create_window(3.875*base_size, 1.375*base_size, width=2*base_size, height=1.75*base_size, window=self.label_colors)
-        self.game_canvas.create_window(3.875*base_size, 1.375*base_size, width=1.5*base_size, height=1.25*base_size, window=self.text_colors) 
+        self.canvas.create_window(3.875*Canv_skel.base_size, 1.375*Canv_skel.base_size, width=2*Canv_skel.base_size, height=1.75*Canv_skel.base_size, window=self.label_colors)
+        self.canvas.create_window(3.875*Canv_skel.base_size, 1.375*Canv_skel.base_size, width=1.5*Canv_skel.base_size, height=1.25*Canv_skel.base_size, window=self.text_colors) 
+    def init_home(self):
+        self.canvas=Canvas(root, width=4*box_size, height=3.5*box_size)
+        self.label_home=Label(root, text="Welcome to Wordle-Solver! \n Press the button below to begin.")
+        self.canvas.create_window(2*box_size, 1*box_size, width=3*box_size, height=1*box_size, window=self.label_home)
+        self.button_home=Button(text="Begin", command=reset_game)
+        self.canvas.create_window(2*box_size, 2.5*box_size, width=3*box_size, height=1*box_size, window=self.button_home)
+
+def main():
+    
+    Game.curr_canv_info=Canv_skel(root)
+    Game.curr_canv_info.init_home()
+    Game.curr_canv_info.canvas.pack()
+
+    root.mainloop()
 
 root=Tk()
 box_size=90
-My_game=Game(My_canvas(root, box_size), My_canvas(root, box_size), box_size)
-def main():
-    My_game.canvas_start.pack()
-    root.mainloop()
+#def main_test():
+#    test_canvas=Canv_skel(root)
+#    test_canvas.init_start()
+#    test_canvas.canvas.pack()
+#    root.mainloop()
+
+#def change_window(old_canvas):
+#    old_canvas.destroy()
+#    test_canvas=Canv_skel(root)
+#    test_canvas.init_game()
+#    test_canvas.canvas.pack()
+#    root.mainloop()
+#My_game=Game(Canv_skel(root, box_size), box_size)
+
 if __name__=="__main__":
     main()
+    #main_test()
 
 
 #if just as good as each other, pick one in answer list
