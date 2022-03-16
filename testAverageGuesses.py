@@ -29,7 +29,7 @@ def determine_colors(guess, answer):
 def play_game(answer, num_tries):
     ws.Game.poss_answers_list[0]=ws.Game.all_words
     ws.Game.attempt_num=0
-    next_guess="tares"
+    next_guess="salet"
     color_results=[determine_colors(next_guess, answer)]
     attempts=1
     while color_results!=["g"*len(answer)]:
@@ -75,6 +75,6 @@ def main():
         print("Solved in " + str(i+1) + "attempts: " + str(num_tries[i]))
     print("Number that failed: " + str(num_tries[6]))
     print("Average number of tries: " + str(average_tries))
-    
+
 if __name__=="__main__":
     main()

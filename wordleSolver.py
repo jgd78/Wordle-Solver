@@ -51,7 +51,6 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
                                             # "ret" is returned and is a list of strings with max length 5 said to be the best five guesses to be made next that 
                                                     # will maximize E(I).
     patterns=create_pattern((0,1,2), Game.length_word) 
-    best_guesses=[(-1,None) for i in range(5)]
     list_of_entropys=[{} for i in range(Game.wordle_type)]
 
     for i in range(Game.wordle_type):
@@ -59,14 +58,14 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
         
         if num_answers==1:
             list_of_entropys[0][poss_answers[i][0]]=1000
-            #print(poss_answers[i][0], "inf")
+            print(poss_answers[i][0], "inf")
         elif num_answers!=0:
-            #if Game.attempt_num<=(Game.wordle_type+1)/2:
-            #    guess_list=poss_answers[i]
-            #else:
-            #    guess_list=Game.all_words
-
-            guess_list=poss_answers[i]
+            if Game.attempt_num<=(Game.wordle_type+1)/2:
+                guess_list=poss_answers[i]
+            else:
+                guess_list=Game.all_words
+            #guess_list=Game.all_words
+            #guess_list=poss_answers[i]
 
 
             for guess in guess_list:
@@ -81,11 +80,17 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
                                 matches+=1
                         
                         if matches!=0:
-                            #print(guess, entropy)
                             p=matches/num_answers
 
                             entropy+=p*(-math.log2(p))
                 list_of_entropys[i][guess]=entropy
+                if entropy!=0:
+                    print(guess, entropy)
+
+    return list_of_entropys
+
+def compile_dict_guesses(list_of_entropys):
+    best_guesses=[(-1,None) for i in range(5)]
 
     ret_dict={}
     for i in range(Game.wordle_type):
@@ -158,7 +163,7 @@ def is_match(guess, answer, pattern):       # "is_match" determines if "answer" 
     
     return fits
 
-def compile_list(guess, colors, poss_words):        # "compile_list" determines the sub-list of "poss_words" that are still potential 
+def compile_list(guess, colors_int, poss_words):        # "compile_list" determines the sub-list of "poss_words" that are still potential 
                                                             # answers to the puzzle once guess "guess" is made with letters corresponding
                                                             # to the values found in "colors".
                                                     # "guess" is a string.
@@ -168,15 +173,7 @@ def compile_list(guess, colors, poss_words):        # "compile_list" determines 
                                                     # "match_list" is returned and is a list of words that match the guess "guess" and
                                                             # the colors in "colors" associated with that word.
 
-    colors_int=()
-    for i in range(len(colors)):
-        if colors[i]=="g":
-            num=2
-        elif colors[i]=="y":
-            num=1
-        else:
-            num=0
-        colors_int+=(num,)
+    
 
     match_list=[]
     if colors_int!=(2,2,2,2,2):
@@ -201,11 +198,15 @@ def execute_calculation():              # "execute_calculation" reads values fro
         valid=valid and (len(entry_colors[i])==Game.length_word)
     if not valid:
         root.mainloop()
+    
 
     best_guesses=calculate_word(word_guess, entry_colors)
-    #print(Game.poss_answers_list)
+    Game.attempt_num+=1
+    print(Game.poss_answers_list)
     next_str="Next guess(es): "
-    if len(best_guesses)==1:
+    if len(best_guesses)==0:
+        print("Program failed, please restart game.")
+    elif len(best_guesses)==1:
         next_str+=best_guesses[0]
     elif len(best_guesses)==2:
         next_str+=best_guesses[0] + " or " + best_guesses[1]
@@ -227,11 +228,33 @@ def calculate_word(word_guess, entry_colors):       # "calculate_word" takes in 
                                                     # "suggested_guesses" is returned and is a list of max length 5 that is the best guesses to be made.
     
     
-    Game.attempt_num+=1
-    for i in range(Game.wordle_type):
-        Game.poss_answers_list[i]=compile_list(word_guess, entry_colors[i], Game.poss_answers_list[i])
     
-    suggested_guesses=find_best_guess(Game.poss_answers_list)
+    
+    for i in range(Game.wordle_type):
+        colors=entry_colors[i]
+        colors_int=()
+        for j in range(len(colors)):
+            if colors[j]=="g":
+                num=2
+            elif colors[j]=="y":
+                num=1
+            else:
+                num=0
+            colors_int+=(num,)
+        Game.poss_answers_list[i]=compile_list(word_guess, colors_int, Game.poss_answers_list[i])
+    if word_guess=="salet" and Game.wordle_type==1 and Game.attempt_num==1 and Game.is_wordle==5:
+        file=open("second_guesses_w.txt", "r")
+        guess_dict=ast.literal_eval(file.readlines()[0])
+        suggested_guesses=[guess_dict.get(colors_int)]
+        file.close()
+    elif word_guess=="salet" and Game.wordle_type==1 and Game.attempt_num==1 and not Game.is_wordle:
+        file=open("second_guesses_5.txt", "r")
+        guess_dict=ast.literal_eval(file.readlines()[0])
+        suggested_guesses=[guess_dict.get(colors_int)]
+        file.close()
+    else:
+        entropy_dicts=find_best_guess(Game.poss_answers_list)
+        suggested_guesses=compile_dict_guesses(entropy_dicts)
     return suggested_guesses
 
 
@@ -250,12 +273,13 @@ def start_game():               # "start_game" is a fucntion used to initialize 
         Game.wordle_type=4
     else:
         root.mainloop()
-    Game.attempt_num=0
+    Game.attempt_num=1
 
     Game.poss_answers_list=[[]for i in range(Game.wordle_type)]
     Game.length_word=Game.curr_canv_info.entry_length.get()
     if str.lower(Game.length_word)=="w":
         Game.length_word=5
+        Game.is_wordle=True
         file=open("allWordsEnglishFew.txt", "r")
         Game.all_words=ast.literal_eval(file.readlines()[0])
         file.close()
@@ -267,7 +291,7 @@ def start_game():               # "start_game" is a fucntion used to initialize 
 
     for i in range(Game.wordle_type):
         Game.poss_answers_list[i]=Game.all_words
-    best_starts=["ho", "eat", "sale", "tares", "retain", "erasion", "notaries", "relations", "clarionets", "ulcerations"]
+    best_starts=["ho", "eat", "sale", "salet", "retain", "erasion", "notaries", "relations", "clarionets", "ulcerations"]
     if 2<=Game.length_word<=11:
         best_first=best_starts[Game.length_word-2]
     else: 
@@ -301,11 +325,13 @@ class Game:             # "Game" is a class meant to hold all the values associa
     poss_answers_list=[]
     box_size=90
     curr_canv_info=None
+    is_wordle=False
 
     def __init__(self, canvas_info=None):
         Game.curr_canv_info=canvas_info
     
     def reset_vals(self):
+        Game.is_wordle=False
         Game.attempt_num=0
         Game.wordle_type=0
         Game.length_word=-1
