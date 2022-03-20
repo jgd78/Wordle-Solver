@@ -191,10 +191,15 @@ def execute_calculation():              # "execute_calculation" reads values fro
     entry_colors=[Game.curr_canv_info.text_colors.get("1.0","2.0-1c"),
                 Game.curr_canv_info.text_colors.get("2.0","3.0-1c"),
                 Game.curr_canv_info.text_colors.get("3.0","4.0-1c"),
-                Game.curr_canv_info.text_colors.get("4.0","5.0-1c")]
+                Game.curr_canv_info.text_colors.get("4.0","5.0-1c"),
+                Game.curr_canv_info.text_colors.get("5.0","6.0-1c"),
+                Game.curr_canv_info.text_colors.get("6.0","7.0-1c"),
+                Game.curr_canv_info.text_colors.get("7.0","8.0-1c"),
+                Game.curr_canv_info.text_colors.get("8.0","9.0-1c")]
     entry_colors=entry_colors[:Game.wordle_type]
     valid=(len(word_guess)==Game.length_word)
     for i in range(Game.wordle_type):
+        print(Game.wordle_type)
         valid=valid and (len(entry_colors[i])==Game.length_word)
     if not valid:
         root.mainloop()
@@ -242,7 +247,7 @@ def calculate_word(word_guess, entry_colors):       # "calculate_word" takes in 
                 num=0
             colors_int+=(num,)
         Game.poss_answers_list[i]=compile_list(word_guess, colors_int, Game.poss_answers_list[i])
-    if word_guess=="salet" and Game.wordle_type==1 and Game.attempt_num==1 and Game.is_wordle==5:
+    if word_guess=="salet" and Game.wordle_type==1 and Game.attempt_num==1 and Game.is_wordle:
         file=open("second_guesses_w.txt", "r")
         guess_dict=ast.literal_eval(file.readlines()[0])
         suggested_guesses=[guess_dict.get(colors_int)]
@@ -271,6 +276,8 @@ def start_game():               # "start_game" is a fucntion used to initialize 
         Game.wordle_type=2
     elif game_type_entry=="quordle":
         Game.wordle_type=4
+    elif game_type_entry=="octordle":
+        Game.wordle_type=8
     else:
         root.mainloop()
     Game.attempt_num=1
