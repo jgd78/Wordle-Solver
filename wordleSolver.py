@@ -401,23 +401,9 @@ def main():
 
 root=Tk()
 box_size=90
-#def main_test():
-#    test_canvas=Canv_skel(root)
-#    test_canvas.init_start()
-#    test_canvas.canvas.pack()
-#    root.mainloop()
 
-#def change_window(old_canvas):
-#    old_canvas.destroy()
-#    test_canvas=Canv_skel(root)
-#    test_canvas.init_game()
-#    test_canvas.canvas.pack()
-#    root.mainloop()
-#My_game=Game(Canv_skel(root, box_size), box_size)
 
 if __name__=="__main__":
     main()
-    #main_test()
 
 
-#if just as good as each other, pick one in answer list
