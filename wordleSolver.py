@@ -248,15 +248,13 @@ def calculate_word(word_guess, entry_colors):       # "calculate_word" takes in 
             colors_int+=(num,)
         Game.poss_answers_list[i]=compile_list(word_guess, colors_int, Game.poss_answers_list[i])
     if word_guess=="salet" and Game.wordle_type==1 and Game.attempt_num==1 and Game.is_wordle:
-        file=open("second_guesses_w.txt", "r")
-        guess_dict=ast.literal_eval(file.readlines()[0])
-        suggested_guesses=[guess_dict.get(colors_int)]
-        file.close()
+        with open("second_guesses_w.txt", "r") as file:
+            guess_dict=ast.literal_eval(file.readlines()[0])
+            suggested_guesses=[guess_dict.get(colors_int)]
     elif word_guess=="salet" and Game.wordle_type==1 and Game.attempt_num==1 and not Game.is_wordle:
-        file=open("second_guesses_5.txt", "r")
-        guess_dict=ast.literal_eval(file.readlines()[0])
-        suggested_guesses=[guess_dict.get(colors_int)]
-        file.close()
+        with open("second_guesses_5.txt", "r") as file:
+            guess_dict=ast.literal_eval(file.readlines()[0])
+            suggested_guesses=[guess_dict.get(colors_int)]
     else:
         entropy_dicts=find_best_guess(Game.poss_answers_list)
         suggested_guesses=compile_dict_guesses(entropy_dicts)
@@ -270,7 +268,7 @@ def start_game():               # "start_game" is a fucntion used to initialize 
     game_type_entry=str.lower(Game.curr_canv_info.entry_type.get()).strip()
 
     
-    if game_type_entry=="wordle":
+    if game_type_entry=="wordle" or game_type_entry=="nerdle":
         Game.wordle_type=1
     elif game_type_entry=="dordle":
         Game.wordle_type=2
@@ -287,14 +285,19 @@ def start_game():               # "start_game" is a fucntion used to initialize 
     if str.lower(Game.length_word)=="w":
         Game.length_word=5
         Game.is_wordle=True
-        file=open("allWordsEnglishFew.txt", "r")
-        Game.all_words=ast.literal_eval(file.readlines()[0])
-        file.close()
+        with open("allWordsEnglishFew.txt", "r") as file:
+            Game.all_words=ast.literal_eval(file.readlines()[0])
+    elif game_type_entry=="nerdle":
+        with open("nerdle_equations.txt", "r") as file:
+            if game_type_entry==6:
+                Game.all_words=ast.literal_eval(file.readlines()[0])
+            else:
+                Game.all_words=ast.literal_eval(file.readlines()[1])
+        
     else:
         Game.length_word=int(Game.length_word)
-        file=open("allWordsEnglishFew.txt", "r")
-        Game.all_words=ast.literal_eval(file.readlines()[Game.length_word])
-        file.close()
+        with open("allWordsEnglishFew.txt", "r") as file:
+            Game.all_words=ast.literal_eval(file.readlines()[Game.length_word])
 
     for i in range(Game.wordle_type):
         Game.poss_answers_list[i]=Game.all_words
