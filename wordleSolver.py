@@ -60,7 +60,7 @@ def find_best_guess(poss_answers):          # "find_best_guess" takes a list of 
             list_of_entropys[0][poss_answers[i][0]]=1000
             print(poss_answers[i][0], "inf")
         elif num_answers!=0:
-            if Game.attempt_num<=(Game.wordle_type+1)/2:
+            if Game.attempt_num<=(Game.wordle_type+1)/2 or Game.game_type_entry=="nerdle":
                 guess_list=poss_answers[i]
             else:
                 guess_list=Game.all_words
@@ -199,7 +199,6 @@ def execute_calculation():              # "execute_calculation" reads values fro
     entry_colors=entry_colors[:Game.wordle_type]
     valid=(len(word_guess)==Game.length_word)
     for i in range(Game.wordle_type):
-        print(Game.wordle_type)
         valid=valid and (len(entry_colors[i])==Game.length_word)
     if not valid:
         root.mainloop()
@@ -265,16 +264,16 @@ def calculate_word(word_guess, entry_colors):       # "calculate_word" takes in 
 def start_game():               # "start_game" is a fucntion used to initialize a new game by destroying the old canvas
                                         # and pack a new one using the game parameters the user has entered such as 
                                         # the game type (wordle, dordle, or quordle) and the word length.    
-    game_type_entry=str.lower(Game.curr_canv_info.entry_type.get()).strip()
+    Game.game_type_entry=str.lower(Game.curr_canv_info.entry_type.get()).strip()
 
     
-    if game_type_entry=="wordle" or game_type_entry=="nerdle":
+    if Game.game_type_entry=="wordle" or Game.game_type_entry=="nerdle":
         Game.wordle_type=1
-    elif game_type_entry=="dordle":
+    elif Game.game_type_entry=="dordle":
         Game.wordle_type=2
-    elif game_type_entry=="quordle":
+    elif Game.game_type_entry=="quordle":
         Game.wordle_type=4
-    elif game_type_entry=="octordle":
+    elif Game.game_type_entry=="octordle":
         Game.wordle_type=8
     else:
         root.mainloop()
@@ -287,9 +286,10 @@ def start_game():               # "start_game" is a fucntion used to initialize 
         Game.is_wordle=True
         with open("allWordsEnglishFew.txt", "r") as file:
             Game.all_words=ast.literal_eval(file.readlines()[0])
-    elif game_type_entry=="nerdle":
-        with open("nerdle_equations.txt", "r") as file:
-            if game_type_entry==6:
+    elif Game.game_type_entry=="nerdle":
+        Game.length_word=int(Game.length_word)
+        with open("all68nerdle_equations.txt", "r") as file:
+            if Game.length_word==6:
                 Game.all_words=ast.literal_eval(file.readlines()[0])
             else:
                 Game.all_words=ast.literal_eval(file.readlines()[1])
@@ -298,11 +298,10 @@ def start_game():               # "start_game" is a fucntion used to initialize 
         Game.length_word=int(Game.length_word)
         with open("allWordsEnglishFew.txt", "r") as file:
             Game.all_words=ast.literal_eval(file.readlines()[Game.length_word])
-
     for i in range(Game.wordle_type):
         Game.poss_answers_list[i]=Game.all_words
     best_starts=["ho", "eat", "sale", "salet", "retain", "erasion", "notaries", "relations", "clarionets", "ulcerations"]
-    if 2<=Game.length_word<=11:
+    if 2<=Game.length_word<=11 and Game.game_type_entry !="nerdle":
         best_first=best_starts[Game.length_word-2]
     else: 
         best_first = "not known"
@@ -336,6 +335,7 @@ class Game:             # "Game" is a class meant to hold all the values associa
     box_size=90
     curr_canv_info=None
     is_wordle=False
+    game_type_entry=""
 
     def __init__(self, canvas_info=None):
         Game.curr_canv_info=canvas_info
@@ -348,6 +348,8 @@ class Game:             # "Game" is a class meant to hold all the values associa
         Game.all_words=[]
         Game.poss_answers_list=[]
         Game.box_size=90
+        game_type_entry=""
+
 
 class Canv_skel():      # "Canv_skel" is a class used to hold all the contents of a predetermined canvas so all the labels, buttons, 
     base_size=90                    # text boxes, etc. can be used again with ease
