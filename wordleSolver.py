@@ -209,7 +209,7 @@ def execute_calculation():              # "execute_calculation" reads values fro
     print(Game.poss_answers_list)
     next_str="Next guess(es): "
     if len(best_guesses)==0:
-        print("Program failed, please restart game.")
+        next_str="Program failed, please restart game."
     elif len(best_guesses)==1:
         next_str+=best_guesses[0]
     elif len(best_guesses)==2:
@@ -303,6 +303,10 @@ def start_game():               # "start_game" is a fucntion used to initialize 
     best_starts=["ho", "eat", "sale", "salet", "retain", "erasion", "notaries", "relations", "clarionets", "ulcerations"]
     if 2<=Game.length_word<=11 and Game.game_type_entry !="nerdle":
         best_first=best_starts[Game.length_word-2]
+    elif Game.game_type_entry=="nerdle" and Game.length_word==6:
+        best_first="4*7=28"
+    elif Game.game_type_entry=="nerdle" and Game.length_word==8:
+        best_first="7/21*9=3"
     else: 
         best_first = "not known"
     Game.curr_canv_info.canvas.destroy()
